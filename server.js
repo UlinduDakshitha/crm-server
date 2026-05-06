@@ -19,3 +19,7 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const errorHandler = require("./middleware/errorMiddleware");
+
+app.use(errorHandler);
