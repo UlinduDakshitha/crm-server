@@ -1,4 +1,4 @@
- const express = require("express");
+const express = require("express");
 const router = express.Router();
 
 const Lead = require("../models/Lead");
@@ -28,6 +28,10 @@ function normalizeLead(lead) {
   if (!lead) return null;
 
   const obj = lead.toObject ? lead.toObject() : lead;
+  const salesperson =
+    typeof obj.assignedSalesperson === "string"
+      ? obj.assignedSalesperson
+      : obj.assignedSalesperson?.name || "";
 
   return {
     ...obj,
@@ -37,6 +41,7 @@ function normalizeLead(lead) {
     estimatedDealValue: obj.estimatedDealValue ?? obj.value ?? 0,
     createdDate: obj.createdDate || obj.createdAt,
     lastUpdatedDate: obj.lastUpdatedDate || obj.updatedAt,
+    assignedSalesperson: salesperson,
   };
 }
 
@@ -65,9 +70,7 @@ router.get("/", protect, async (req, res) => {
       ];
     }
 
-    const leads = await Lead.find(filter)
-      .populate("assignedSalesperson", "_id name email")
-      .sort({ createdAt: -1 });
+    const leads = await Lead.find(filter).sort({ createdAt: -1 });
 
     res.json(leads.map(normalizeLead));
   } catch (err) {
@@ -77,10 +80,7 @@ router.get("/", protect, async (req, res) => {
 
 router.get("/:id", protect, async (req, res) => {
   try {
-    const lead = await Lead.findById(req.params.id).populate(
-      "assignedSalesperson",
-      "_id name email",
-    );
+    const lead = await Lead.findById(req.params.id);
 
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
@@ -114,8 +114,11 @@ router.post("/", protect, async (req, res) => {
     const email = (req.body.email || "").trim().toLowerCase();
     const phone = (req.body.phone || req.body.phoneNumber || "").trim();
     const source = (req.body.source || req.body.leadSource || "").trim();
-    const assignedSalesperson =
-      (req.body.assignedSalesperson || req.body.salesperson || "").trim() || null;
+    const assignedSalesperson = (
+      req.body.assignedSalesperson ||
+      req.body.salesperson ||
+      ""
+    ).trim();
     const status = VALID_STATUSES.includes(req.body.status)
       ? req.body.status
       : "New";
@@ -123,7 +126,8 @@ router.post("/", protect, async (req, res) => {
 
     if (!name || !company || !email || !phone || !source) {
       return res.status(400).json({
-        message: "Please provide all required fields: name, company, email, phone, source",
+        message:
+          "Please provide all required fields: name, company, email, phone, source",
         received: { name, company, email, phone, source },
       });
     }
@@ -158,12 +162,7 @@ router.post("/", protect, async (req, res) => {
     }
 
     const lead = await Lead.create(leadData);
-    const populatedLead = await Lead.findById(lead._id).populate(
-      "assignedSalesperson",
-      "_id name email",
-    );
-
-    res.status(201).json(normalizeLead(populatedLead));
+    res.status(201).json(normalizeLead(lead));
   } catch (err) {
     res.status(400).json({
       message: err.message || "Error creating lead",
@@ -198,7 +197,7 @@ router.put("/:id", protect, async (req, res) => {
     const lead = await Lead.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
-    }).populate("assignedSalesperson", "_id name email");
+    });
 
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
@@ -228,7 +227,7 @@ router.patch("/:id/status", protect, async (req, res) => {
       req.params.id,
       { status },
       { new: true, runValidators: true },
-    ).populate("assignedSalesperson", "_id name email");
+    );
 
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
@@ -240,7 +239,9 @@ router.patch("/:id/status", protect, async (req, res) => {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    res.status(400).json({ message: err.message || "Error updating lead status" });
+    res
+      .status(400)
+      .json({ message: err.message || "Error updating lead status" });
   }
 });
 

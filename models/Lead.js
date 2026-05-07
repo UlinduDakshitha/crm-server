@@ -37,9 +37,9 @@ const leadSchema = new mongoose.Schema(
       ],
     },
     assignedSalesperson: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
+      type: String,
+      trim: true,
+      default: "",
     },
     status: {
       type: String,
