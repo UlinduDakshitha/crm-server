@@ -105,3 +105,6 @@ No role-based access control
 No email notifications
 No pagination yet
 No file upload support
+
+Reflection
+This project helped me understand how to build a full-stack CRUD application with authentication, database persistence, and dashboard analytics. I learned how frontend and backend communicate through REST APIs and how MongoDB stores structured CRM data.
