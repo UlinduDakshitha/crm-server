@@ -41,3 +41,67 @@ crm-backend/
 ├── server.js
 ├── .env
 └── package.json
+
+Setup Instructions
+1. Install dependencies
+npm install
+2. Create .env file
+MONGO_URI=your_mongodb_connection_string
+PORT=5000
+JWT_SECRET=secretkey
+3. Run the server
+
+For development:
+
+npm run dev
+
+For production:
+
+npm start
+
+Test Login Credentials
+Email: admin@example.com
+Password: password123
+
+
+API Endpoints
+Auth
+POST /api/auth/login
+Leads
+GET /api/leads
+POST /api/leads
+PUT /api/leads/:id
+PATCH /api/leads/:id/status
+DELETE /api/leads/:id
+Notes
+GET /api/notes/:leadId
+POST /api/notes
+Dashboard
+GET /api/dashboard
+Lead Fields
+
+Each lead contains:
+
+name
+company
+email
+phone
+source
+status
+value
+createdAt
+updatedAt
+Note Fields
+
+Each note contains:
+
+leadId
+content
+createdAt
+updatedAt
+Known Limitations
+Uses a simple test user for login
+No role-based access control
+No email notifications
+No pagination yet
+No file upload support
